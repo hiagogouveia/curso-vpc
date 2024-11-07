@@ -1,0 +1,18 @@
+Esse projeto reforça o conhecimento sobre VPC, ACL, Servidor Bastion, VPC flow logs, tabela de rotas.
+
+### Exercicios para automatizar e fixar conhecimento
+
+
+**Criando servidor Bastion:**
+- 1- Criar uma VPC, sendo uma com internet gateway e outra sem para ser a privada.
+- 2- Criar 2 instâncias, uma com ip publico e na subnet publica e outra na subnet privada e sem ip publico;
+- 3- Criar SG permitindo ssh na instância com acesso a internet;
+- 4- Criar SG permitindo ssh na rede privada da outra instância que tem acesso publico, para que possamos conectar internamente;
+- 5- Criar ACL, adicionando regra que a subnet a qual está a instância privada, vai receber conexões vindo apenas da rede publica e nada mais, adicionar essa regra em inbound e outbound e associar a regra na subnet privada;
+- 6- Teste os acessos se deu certo, para isso, pode seguir a documentação [[Como conectar em uma instancia com rede privada]]
+
+**Reforçando conhecimento de internet gateway. Conectar um Internet Gateway em uma rede privada sem acesso a internet:**
+- 1- Criar uma vpc e subnet com uma sendo privada, ou seja sem internet gateway
+- 2- Criar uma instância e adicionar na rede privada, sem um ip publico, até pq ela não terá acesso a internet;
+- 3- Criar uma tabela de rota, adicionar uma regra redirecionando todo trafego para o internet gateway, e adicionar a subnet privada nessa tabela de rota;
+- 4- Atribuir um elastic ip para a instância, atribuir um SG permitindo acesso via SSH, e validar se consegue acessar agora a isntância.
