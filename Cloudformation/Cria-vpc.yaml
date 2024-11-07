@@ -1,0 +1,111 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  # Criação da VPC
+  MyVPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: '10.0.0.0/16'
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+       - Key: stack
+         Value: production
+       - Key: Project
+         Value: Curso-vpc
+
+  # Criação do Internet Gateway
+  MyInternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:  # Corrigido para incluir Properties
+      Tags:
+        - Key: Name
+          Value: 'MyInternetGateway'
+        - Key: Project
+          Value: 'Curso-vpc'  
+
+  # Associação do Internet Gateway com a VPC
+  MyGatewayAttachment:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref MyVPC
+      InternetGatewayId: !Ref MyInternetGateway
+
+  # Criação da sub-rede pública
+  PublicSubnet:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: '10.0.1.0/24'
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+     
+
+  # Criação da rota para a sub-rede pública
+  PublicRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref MyVPC
+   
+
+  PublicRoute:
+    Type: 'AWS::EC2::Route'
+    DependsOn: MyGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref MyInternetGateway
+
+  PublicSubnetRouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicRouteTable
+
+  # Criação da sub-rede privada
+  PrivateSubnet:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: '10.0.2.0/24'
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+    
+
+  # Tabela de rotas privada
+  PrivateRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref MyVPC
+      
+
+  PrivateSubnetRouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PrivateSubnet
+      RouteTableId: !Ref PrivateRouteTable
+
+  # NAT Gateway para permitir que a sub-rede privada acesse a Internet
+  # EIPForNAT:
+  #   Type: 'AWS::EC2::EIP'
+  #   Properties:
+  #     Domain: 'vpc'
+
+  # MyNATGateway:
+  #   Type: 'AWS::EC2::NatGateway'
+  #   Properties:
+  #     AllocationId: !GetAtt EIPForNAT.AllocationId
+  #     SubnetId: !Ref PublicSubnet
+  #     Tags:
+  #       - Key: Name
+  #         Value: 'MyNATGateway'
+  #       - key: Project
+  #         Value: 'Curso-vpc'  
+
+  # # Rota para Internet na sub-rede privada, usando o NAT Gateway
+  # PrivateRoute:
+  #   Type: 'AWS::EC2::Route'
+  #   Properties:
+  #     RouteTableId: !Ref PrivateRouteTable
+  #     DestinationCidrBlock: '0.0.0.0/0'
+  #     NatGatewayId: !Ref MyNATGateway
+
+  # aws cloudformation create-stack --stack-name Cria-Minha-VPC --template-body file://Cloudformation/Cria-vpc.yaml --region us-east-1
